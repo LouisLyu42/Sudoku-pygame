@@ -4,33 +4,15 @@ import sys
 import copy
 #utilizes copy library to prevent accidental corruption/edits to original boards during generation process
 
-
-# Initialize Pygame
-pygame.init()
-
-# Constants, initialized by ChatGPT
-WIDTH, HEIGHT = 540, 600
-GRID_SIZE = 9
-CELL_SIZE = WIDTH // GRID_SIZE
-FONT = pygame.font.SysFont("comic sans", 40)
-SMALL_FONT = pygame.font.SysFont("comic sans", 20)
-
-# Colors, initialized by ChatGPT
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-LIGHTBLUE = (173, 216, 230)
-GRAY = (200, 200, 200)
-
-
 def three_by_three(row, column):
-    # '''finds the top left corner's coordinates that the 3x3 box that a given coordinate (row, column) is in'''
+    '''finds the top left corner's coordinates that the 3x3 box that a given coordinate (row, column) is in'''
     row_coord = row - row%3
     column_coord = column - column%3
     return row_coord, column_coord
 
 
 def is_valid(num, board, row, column):
-    # '''function to verify if a number num placed at a initial 9x9 board at (row, column) leads to a valid sudoku starting board'''
+    '''function to verify if a number num placed at a initial 9x9 board at (row, column) leads to a valid sudoku starting board'''
     a, b = three_by_three(row, column)
     #checks if current number is in current row
     for i in board[row]:
@@ -49,7 +31,7 @@ def is_valid(num, board, row, column):
 
 
 def fill_board(board):
-    # '''Takes in a 9x9 sudoku board and completely solves/fills it'''
+    '''Takes in a 9x9 sudoku board and completely solves/fills it'''
     for i in range(9):
         for j in range(9):
             if board[i][j] == 0:
@@ -65,9 +47,12 @@ def fill_board(board):
     return True  # Board is completely filled
 
 
-def count_solutions(board):
-    # '''Takes in a 9x9 sudoku board and calculates how many solutons it has'''
+def count_solutions(board, limit=2):
+    '''Counts the number of solutions up to a limit. Stops early for performance.'''
     def solve(b, count):
+        if count[0] >= limit:
+            return  # Early exit
+
         for row in range(9):
             for col in range(9):
                 if b[row][col] == 0:
@@ -81,35 +66,56 @@ def count_solutions(board):
 
     count = [0]
     solve(copy.deepcopy(board), count)
-    return count
+    return count[0]
 
 
-def generate_puzzle(clues=30):
-    # '''Generates a random partially filled but valid 9x9 sudoku board, with n clues that the user can specify that determines how many starting numbers there are'''
-    # Step 1: Generate full solution
-    board = [[0 for i in range(9)] for j in range(9)]
+def generate_puzzle(clues=30, max_attempts=1000):
+    '''Generates a partially filled but valid puzzle with varying difficulty based on amount of clues, has a limit of 1000 attempts at removing numbers during generation to prevent stalling'''
+    board = [[0 for _ in range(9)] for _ in range(9)]
     fill_board(board)
-
-    # Step 2: Remove numbers randomly while keeping a unique solution
+    
     attempts = 81 - clues
-    while attempts > 0:
+    tries = 0
+
+    while attempts > 0 and tries < max_attempts:
         row = rd.randint(0, 8)
         col = rd.randint(0, 8)
+
         if board[row][col] != 0:
             backup = board[row][col]
-            board[row][col] = 0 #temporarily removes the number, letting the count_solutions functions check if board remains valid
+            board[row][col] = 0
 
-            board_copy = copy.deepcopy(board)
-            solutions = count_solutions(board_copy)
-
-            if solutions != 1:
-                board[row][col] = backup  # undo
-            else:
+            if count_solutions(board) == 1:
                 attempts -= 1
+            else:
+                board[row][col] = backup
+            tries += 1
 
     return board
 
+print("Generating puzzle...")
 board = generate_puzzle(clues=30)
+print("Puzzle generated!")
+
+
+# Initialize Pygame
+pygame.init()
+
+# Constants, initialized by ChatGPT to give proper values to fit grid into window, create buttons, generate correct colors on screen, set the font, etc.
+WIDTH, HEIGHT = 540, 600
+GRID_SIZE = 9
+CELL_SIZE = WIDTH // GRID_SIZE
+FONT = pygame.font.SysFont("comic sans", 40)
+SMALL_FONT = pygame.font.SysFont("comic sans", 20)
+BUTTON_WIDTH, BUTTON_HEIGHT = 150, 50
+BUTTON_X = (WIDTH - BUTTON_WIDTH) // 2
+BUTTON_Y = HEIGHT - BUTTON_HEIGHT - 10  # Just above the bottom of the window
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+LIGHTBLUE = (173, 216, 230)
+GRAY = (200, 200, 200)
+
+
 
 
 # Fixed positions
@@ -119,9 +125,9 @@ fixed = [[num != 0 for num in row] for row in board]
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Sudoku")
 
-      
+
 def is_valid_(unit):
-    # """Checks if an area has 2 of the same number or any number more 9 or less then 1"""
+    """Checks if an area has 2 of the same number or any number more 9 or less then 1"""
     digits = [d for d in unit if isinstance(d, int)] #isinstance checks if d is an integer
     return len(digits) == len(set(digits)) and all(1 <= d <= 9 for d in digits)
 
@@ -129,15 +135,20 @@ def is_valid_(unit):
 selected = None
 
 def draw_grid():
-    # """Draws a grid on the pygame window for the sudoku puzzle"""
+    """Draws a grid on the pygame window for the sudoku puzzle"""
     for x in range(GRID_SIZE + 1):
         width = 3 if x % 3 == 0 else 1
         pygame.draw.line(screen, BLACK, (x * CELL_SIZE, 0), (x * CELL_SIZE, WIDTH), width)
         pygame.draw.line(screen, BLACK, (0, x * CELL_SIZE), (WIDTH, x * CELL_SIZE), width)
 
+def draw_solve_button():
+    pygame.draw.rect(screen, LIGHTBLUE, (BUTTON_X, BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT))
+    text = SMALL_FONT.render("Solve", True, BLACK)
+    text_rect = text.get_rect(center=(BUTTON_X + BUTTON_WIDTH // 2, BUTTON_Y + BUTTON_HEIGHT // 2))
+    screen.blit(text, text_rect)
 
 def draw_numbers():
-    # """Display the initial numbers as black on the screen and all other numbers entered as gray for ease of use"""
+    """Display the initial numbers as black on the screen and all other numbers entered as gray for ease of use"""
     for i in range(GRID_SIZE):
         for j in range(GRID_SIZE):
             num = board[i][j]
@@ -148,29 +159,30 @@ def draw_numbers():
 
 
 def draw_selected():
-    # """Function for showing what box the user is currently selecting for ease of use"""
+    """Function for showing what box the user is currently selecting for ease of use"""
     if selected:
         row, col = selected
         pygame.draw.rect(screen, LIGHTBLUE, (col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE))
 
  
 def place_number(key):
-    # """Function for placing a number inputted by the user into a selected column by user"""
+    """Function for placing a number inputted by the user into a selected column by user"""
     if selected and not fixed[selected[0]][selected[1]]:
         board[selected[0]][selected[1]] = key
 
 
 def is_valid_sodoku(board):
-    # """Checks if a finished Sudoku Board is correct or not"""
+    """Checks if a finished Sudoku Board is correct or not"""
+    #checks each row
     for row in board: 
         if not is_valid_(row):
             return False
-    
+    #checks each column
     for col in range(9):
         column = [board[row][col] for row in range(9)]
         if not is_valid_(column):
             return False
-        
+    #checks each 3x3 square 
     for sub_row in range(3):
         for sub_col in range(3):
             subgrid = []
@@ -184,12 +196,17 @@ def is_valid_sodoku(board):
 # Game loop
 running = True
 while running:
+    
+    #initialize window
     screen.fill(WHITE)
     draw_selected()
     draw_grid()
     draw_numbers()
+    draw_solve_button()
     pygame.display.flip()
+    pygame.time.wait(100)
     
+    #filters through user inputs
     for event in pygame.event.get():
         #closes the window if the user presses x on the window
         if event.type == pygame.QUIT:
@@ -200,6 +217,9 @@ while running:
             x, y = pygame.mouse.get_pos()
             if x < WIDTH and y < WIDTH:
                 selected = (y // CELL_SIZE, x // CELL_SIZE)
+             # Check if clicked on "Solve" button
+            elif BUTTON_X <= x <= BUTTON_X + BUTTON_WIDTH and BUTTON_Y <= y <= BUTTON_Y + BUTTON_HEIGHT:
+                fill_board(board)  # Solve the puzzle
 
         #allows the user to enter and delete numbers when they type on the keyboard
         if event.type == pygame.KEYDOWN:
@@ -217,3 +237,6 @@ while running:
 
 pygame.quit()
 sys.exit()
+
+#FOOTNOTES
+# read through and used the copy, sys, and pygame libraries' documentation to help us understand how to use them properly to create this game
