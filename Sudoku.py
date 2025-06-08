@@ -116,6 +116,11 @@ LIGHTBLUE = (173, 216, 230)
 GRAY = (200, 200, 200)
 
 
+#booleans to check if solved by user or not
+solve_clicked = False
+solved_by_user = False
+
+
 
 
 # Fixed positions
@@ -219,22 +224,20 @@ while running:
                 selected = (y // CELL_SIZE, x // CELL_SIZE)
              # Check if clicked on "Solve" button
             elif BUTTON_X <= x <= BUTTON_X + BUTTON_WIDTH and BUTTON_Y <= y <= BUTTON_Y + BUTTON_HEIGHT:
-                fill_board(board)  # Solve the puzzle
+                fill_board(board) #solves the puzzle
+                solve_clicked = True #solved by computer
 
         #allows the user to enter and delete numbers when they type on the keyboard
         if event.type == pygame.KEYDOWN:
             if selected and event.unicode in '123456789':
                 place_number(int(event.unicode))
+                solved_by_user = True # solved by user
             elif event.key == pygame.K_BACKSPACE or event.key == pygame.K_DELETE:
                 place_number(0)
 
-        if is_valid_sodoku(board): 
+        if is_valid_sodoku(board) and solved_by_user: 
             win_text = FONT.render("You win!!!!!", True, (0, 0, 0))
             screen.blit(win_text, (150, 537))
-            pygame.display.update()
-            pygame.time.wait(1000)
-            running = False
-
 pygame.quit()
 sys.exit()
 
