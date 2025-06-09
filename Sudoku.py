@@ -243,4 +243,9 @@ pygame.quit()
 sys.exit()
 
 #FOOTNOTES
-# read through and used the copy, sys, and pygame libraries' documentation to help us understand how to use them properly to create this game
+# Read through and used the copy, sys, and pygame libraries' documentation to help us understand how to use them properly to create this game
+# Read through the built-in functions documentation to learn things such as isinstance() or all()
+# 1. Copy library doc: https://docs.python.org/3/library/copy.html
+# 2. Pygame library doc: https://www.pygame.org/docs/
+# 3. Sys library doc: https://docs.python.org/3/library/sys.html
+# 4. Built-in function doc: https://docs.python.org/3/library/functions.html 
