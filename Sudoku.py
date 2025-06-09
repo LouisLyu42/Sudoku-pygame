@@ -235,16 +235,17 @@ while running:
                 solved_by_user = True # solved by user
             elif event.key == pygame.K_BACKSPACE or event.key == pygame.K_DELETE:
                 place_number(0)
-
+        #detects if the user solves the puzzle and displays text that indicates such
         if is_valid_sodoku(board) and solved_by_user: 
             win_text = FONT.render("You win!!!!!", True, (0, 0, 0))
             screen.blit(win_text, (150, 537))
 pygame.quit()
 sys.exit()
 
-#FOOTNOTES
+#FOOTNOTES/Citations
 # Read through and used the copy, sys, and pygame libraries' documentation to help us understand how to use them properly to create this game
 # Read through the built-in functions documentation to learn things such as isinstance() or all()
+# Used ChatGPT with logic/flowchart help with puzzle generation functions
 # 1. Copy library doc: https://docs.python.org/3/library/copy.html
 # 2. Pygame library doc: https://www.pygame.org/docs/
 # 3. Sys library doc: https://docs.python.org/3/library/sys.html
