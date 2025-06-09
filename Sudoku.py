@@ -239,6 +239,10 @@ while running:
         if is_valid_sodoku(board) and solved_by_user: 
             win_text = FONT.render("You win!!!!!", True, (0, 0, 0))
             screen.blit(win_text, (150, 537))
+            pygame.display.update()
+            pygame.time.wait(2000)
+            running = False
+            
 pygame.quit()
 sys.exit()
 
