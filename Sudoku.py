@@ -147,6 +147,7 @@ def draw_grid():
         pygame.draw.line(screen, BLACK, (0, x * CELL_SIZE), (WIDTH, x * CELL_SIZE), width)
 
 def draw_solve_button():
+    '''Draws a Solve button at the bottom middle of the screen'''
     pygame.draw.rect(screen, LIGHTBLUE, (BUTTON_X, BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT))
     text = SMALL_FONT.render("Solve", True, BLACK)
     text_rect = text.get_rect(center=(BUTTON_X + BUTTON_WIDTH // 2, BUTTON_Y + BUTTON_HEIGHT // 2))
@@ -171,7 +172,7 @@ def draw_selected():
 
  
 def place_number(key):
-    """Function for placing a number inputted by the user into a selected column by user"""
+    """Function for placing a number inputted by the user into a selected position (row, col) by user"""
     if selected and not fixed[selected[0]][selected[1]]:
         board[selected[0]][selected[1]] = key
 
